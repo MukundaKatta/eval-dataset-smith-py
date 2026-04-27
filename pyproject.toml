@@ -1,0 +1,59 @@
+[build-system]
+requires = ["hatchling>=1.24"]
+build-backend = "hatchling.build"
+
+[project]
+name = "eval-dataset-smith-py"
+version = "0.1.0"
+description = "Generate balanced AI eval fixtures from source examples, bugs, docs, and policies. Python port of @mukundakatta/eval-dataset-smith."
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+authors = [{ name = "Mukunda Katta", email = "mukunda.vjcs6@gmail.com" }]
+keywords = [
+  "llm",
+  "evals",
+  "evaluation",
+  "dataset",
+  "agents",
+  "ai",
+  "claude",
+  "openai",
+  "fixtures",
+  "stratified",
+]
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Intended Audience :: Developers",
+  "License :: OSI Approved :: MIT License",
+  "Operating System :: OS Independent",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3 :: Only",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "Programming Language :: Python :: 3.14",
+  "Topic :: Software Development :: Libraries :: Python Modules",
+  "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
+dependencies = []
+
+[project.optional-dependencies]
+dev = ["pytest>=8.0"]
+
+[project.urls]
+Homepage = "https://github.com/MukundaKatta/eval-dataset-smith-py"
+Issues = "https://github.com/MukundaKatta/eval-dataset-smith-py/issues"
+Source = "https://github.com/MukundaKatta/eval-dataset-smith-py"
+"JS sibling" = "https://github.com/MukundaKatta/eval-dataset-smith"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/eval_dataset_smith"]
+
+[tool.hatch.build.targets.sdist]
+include = ["/src", "/tests", "/README.md", "/LICENSE", "/DCO"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
