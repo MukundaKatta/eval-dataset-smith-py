@@ -129,6 +129,21 @@ def test_build_eval_dataset_validates_input_type():
         build_eval_dataset({"not": "a list"})  # type: ignore[arg-type]
 
 
+def test_build_eval_dataset_skips_non_dict_items():
+    # Non-dict entries are tolerated (skipped), not crashed on.
+    rows = build_eval_dataset(["nope", 42, None, _bug(3)])
+    assert len(rows) == 1
+    assert rows[0]["id"] == "bug-3"
+
+
+def test_forge_dataset_skips_non_dict_items():
+    # forge_dataset already guards non-dicts in its balance loop; the cases
+    # path should be equally tolerant rather than raising AttributeError.
+    ds = forge_dataset(["nope", _bug(4)])
+    assert len(ds) == 1
+    assert ds.cases[0].id == "bug-4"
+
+
 def test_forge_dataset_validates_input_type():
     with pytest.raises(TypeError):
         forge_dataset("nope")  # type: ignore[arg-type]

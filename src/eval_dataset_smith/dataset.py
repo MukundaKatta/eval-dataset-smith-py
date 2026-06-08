@@ -7,6 +7,7 @@ and adds a top-level ``forge_dataset`` function that returns a typed
 
 from __future__ import annotations
 
+import math
 from collections import defaultdict
 from dataclasses import dataclass, field
 from typing import Any, Iterable, Sequence
@@ -54,7 +55,9 @@ class Dataset:
 # Internal helpers
 
 
-def _group_by(items: Iterable[dict[str, Any]], key: str, default: str) -> dict[str, list[dict[str, Any]]]:
+def _group_by(
+    items: Iterable[dict[str, Any]], key: str, default: str
+) -> dict[str, list[dict[str, Any]]]:
     """Bucket ``items`` by ``key`` (falling back to ``default`` when absent)."""
     out: dict[str, list[dict[str, Any]]] = defaultdict(list)
     for item in items:
@@ -67,7 +70,9 @@ def _group_by(items: Iterable[dict[str, Any]], key: str, default: str) -> dict[s
 # JS-port functions
 
 
-def build_eval_dataset(items: Sequence[dict[str, Any]], max_per_type: int = 20) -> list[dict[str, Any]]:
+def build_eval_dataset(
+    items: Sequence[dict[str, Any]], max_per_type: int = 20
+) -> list[dict[str, Any]]:
     """Build a flat list of eval-case dicts; direct port of JS ``buildEvalDataset``.
 
     Each input item may use any of these field-name aliases:
@@ -89,6 +94,11 @@ def build_eval_dataset(items: Sequence[dict[str, Any]], max_per_type: int = 20) 
     result: list[dict[str, Any]] = []
     for type_name, values in grouped.items():
         for index, item in enumerate(values[:max_per_type]):
+            if not isinstance(item, dict):
+                # Mirror the defensive guards in ``_group_by`` and
+                # ``forge_dataset``: tolerate non-dict items by skipping them
+                # rather than raising a confusing ``AttributeError``.
+                continue
             item_id = item.get("id") or f"{type_name}-{index + 1}"
             inp = item.get("input") or item.get("question") or item.get("prompt")
             exp = item.get("expected") or item.get("answer") or item.get("acceptance")
@@ -113,7 +123,9 @@ def build_eval_dataset(items: Sequence[dict[str, Any]], max_per_type: int = 20) 
     return result
 
 
-def stratified_split(items: Sequence[dict[str, Any]], ratio: float = 0.8) -> dict[str, list[dict[str, Any]]]:
+def stratified_split(
+    items: Sequence[dict[str, Any]], ratio: float = 0.8
+) -> dict[str, list[dict[str, Any]]]:
     """Split ``items`` into train/test, preserving per-tag balance.
 
     Uses each item's first tag (or ``"general"`` if absent) as the strata key
@@ -121,8 +133,6 @@ def stratified_split(items: Sequence[dict[str, Any]], ratio: float = 0.8) -> dic
     """
     if not 0.0 <= ratio <= 1.0:
         raise TypeError("ratio must be in [0.0, 1.0]")
-
-    import math
 
     train: list[dict[str, Any]] = []
     test: list[dict[str, Any]] = []
@@ -162,7 +172,9 @@ def forge_dataset(
     if not isinstance(sources, (list, tuple)):
         raise TypeError("sources must be a list or tuple of dicts")
 
-    keys: tuple[str, ...] = tuple(balance_keys) if balance_keys else ("type", "difficulty")
+    keys: tuple[str, ...] = (
+        tuple(balance_keys) if balance_keys else ("type", "difficulty")
+    )
 
     rows = build_eval_dataset(sources, max_per_type=max_per_type)
     cases = [
